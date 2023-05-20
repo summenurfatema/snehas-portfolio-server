@@ -4,6 +4,8 @@ const app = express()
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
+
+
 require('dotenv').config()
 
 app.use(cors())
@@ -24,7 +26,8 @@ async function run() {
         const honorCollection = client.db('SnehaPoddar').collection('honorCollection')
         const joinTeamCollection = client.db('SnehaPoddar').collection('joinTeam')
         const aboutCollection = client.db('SnehaPoddar').collection('aboutCollection')
-        const mediaCollection = client.db('SnehaPoddar').collection('media')
+        const imageCollection = client.db('SnehaPoddar').collection('media')
+        const videoCollection = client.db('SnehaPoddar').collection('videoCollection')
 
 
 
@@ -67,34 +70,97 @@ async function run() {
     // post photo in gallery
     app.post('/media', async (req, res) => {
         const gallery = req.body
-        const result = await mediaCollection.insertOne(gallery)
+        const result = await imageCollection.insertOne(gallery)
         res.send(result)
 
     })
     // get all media
     app.get('/all-media', async (req, res) => {
         const query = {}
-        const allMedia = await mediaCollection.find(query).sort({ _id: -1 }).toArray()
+        const allMedia = await imageCollection.find(query).sort({ _id: -1 }).toArray()
         res.send(allMedia)
     })
      // get photo by id
      app.get('/gallery/:id', async (req, res) => {
       const id = req.params.id
           const query = { _id: new ObjectId(id) }
-          const menuCard = await mediaCollection.findOne(query)
+          const menuCard = await imageCollection.findOne(query)
           res.send(menuCard)
     });
     // delete media
     app.delete('/medias/:id', async (req, res) => {
         const id = req.params.id
         const query = { _id:new ObjectId(id) }
-        const result = await mediaCollection.deleteOne(query)
+        const result = await imageCollection.deleteOne(query)
         res.send(result)
     })
 
+      // update image caption
+      app.put("/change-caption/:id", async (req, res) => {
+        const id = req.params.id;
+        const update = req.body;
+        const filter = { _id: new ObjectId(id) };
+        const option = { upsert: true };
+        const updateDoc = {
+          $set: {
+            description: update.description,
+          },
+        };
+        const result = await imageCollection.updateOne(
+          filter,
+          updateDoc,
+          option
+        );
+        res.send(result);
+      })
+
+// get video
+  app.get('/video', async (req, res) => {
+    const query = {}
+    const about = await videoCollection.find(query).sort({ _id: -1 }).toArray()
+    res.send(about)
+})
+// upload from youtube
+app.post('/youtube-upload', async (req, res) => {
+  const videoReq = req.body
+  const result = await videoCollection.insertOne(videoReq)
+  res.send(result)
+
+})
+// post video
+app.post('/post-video', async (req, res) => {
+  const videoReq = req.body
+  const result = await videoCollection.insertOne(videoReq)
+  res.send(result)
+
+})
+ // delete video
+    app.delete('/delete-video/:id', async (req, res) => {
+        const id = req.params.id
+        const query = { _id:new ObjectId(id) }
+        const result = await videoCollection.deleteOne(query)
+        res.send(result)
+    })
 
     //------------------------------------About-----------------------------------//
-
+// update 1st about
+app.put("/about-image/:id", async (req, res) => {
+  const id = req.params.id;
+  const update = req.body;
+  const filter = { _id: new ObjectId(id) };
+  const option = { upsert: true };
+  const updateDoc = {
+    $set: {
+    image:update.image,
+    },
+  };
+  const result = await aboutCollection.updateOne(
+    filter,
+    updateDoc,
+    option
+  );
+  res.send(result);
+});
     //get about data
     app.get('/about', async (req, res) => {
         const query = {}
